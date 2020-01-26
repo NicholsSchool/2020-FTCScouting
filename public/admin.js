@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", event => {
             matches = userMatches;
             saveTeamsToServer();
             saveMatchesToServer();
-            $('#set-event-btn').removeClass("disappear");
+            $('#set-btns').removeClass("disappear");
         }
         $('#save-matches-modal .modal-body').html(responseText);
         
@@ -64,6 +64,8 @@ document.addEventListener("DOMContentLoaded", event => {
     })
 
     $('#set-event-btn').on("click", setEvent);
+    $('#set-teams-btn').on("click", setTeamsInSpreadsheet);
+    $('#set-match-btn').on("click", setMatchesInSpreadsheet);
     $('#add-match-btn').on("click", addMatchLine)
 })
 

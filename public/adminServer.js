@@ -40,6 +40,20 @@ function saveMatchesToServer() {
         })
 }
 
+function setTeamsInSpreadsheet(){
+    $.post('/saveTeamsToSpreadsheet', {},
+        function (response, status) {
+            console.log(response);
+        })
+}
+
+function setMatchesInSpreadsheet() {
+    $.post('/saveMatchesToSpreadsheet', {},
+        function (response, status) {
+            console.log(response);
+        })
+}
+
 async function setEvent() {
     if (eventError())
         return;
