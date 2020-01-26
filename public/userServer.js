@@ -3,11 +3,9 @@
  */
 async function getCurrentEvent()
 {
-    var event;
-    await $.get('/getCurrentEvent', (response) => {
-        event = response
+    return $.get('/getCurrentEvent', (event) => {
+        return event;
     })
-    return event
 }
 
 /**
@@ -15,11 +13,9 @@ async function getCurrentEvent()
  */
 async function getMatches()
 {
-    var matches;
-    await $.get('/getMatches', (response) => {
-        matches = response
+    return $.get('/getMatches', (matches) => {
+       return matches
     })
-    return matches
 }
 
 /**
@@ -28,11 +24,9 @@ async function getMatches()
  */
 async function getTeamsInMatch(match)
 {
-    var teams;
-    await $.get('/getTeamsInMatch?match=' + match, (response) => {
-        teams = response
+    return $.get('/getTeamsInMatch?match=' + match, (teams) => {
+        return teams
     })
-    return teams
 }
 
 /**

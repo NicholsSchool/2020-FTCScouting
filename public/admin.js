@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", event => {
             saveMatchesToServer();
             $('#set-event-btn').removeClass("disappear");
         }
-        $('#save-matches-modal .modal-body').text(responseText);
+        $('#save-matches-modal .modal-body').html(responseText);
         
         $('#save-matches-modal').modal('show')
 
@@ -200,10 +200,11 @@ function getMatchLine()
  */
 async function setUpEventOptions()
 {
-    var events = await getExistingEvents();
-    console.log("Going to set up the events now")
-    for(i in events)
-        $('#edit-event-options').append("<option>" + events[i] + "</option>");
+    getExistingEvents()
+    .then(events => {
+        for (event of events)
+            $('#edit-event-options').append("<option>" + event + "</option>");
+    })
 
     /**
      * Fills in all known data for the selected event
@@ -212,20 +213,23 @@ async function setUpEventOptions()
         enterResponse('#event-name-input');
         var eventName = $('#edit-event-options option:selected').text()
         $('#event-name-input').val(eventName);
-        var teams = await getTeamsInEvent(eventName);
-        for(i in teams)
-        {
-            enterResponse($('.team-info').eq(i));
-            $('.team-info').eq(i).val(teams[i]);
-        }
-        var matches = await getMatchesInEvent(eventName);
-        for(i in matches)
-        {
-            $('.match-info').eq(i).children(".form-control").each(function (j, childObj) {
-                $(this).val(matches[i][j]);
-            })
-            addMatchLine();
-        }
+        getTeamsInEvent(eventName)
+        .then(teams => {
+            for (i in teams) {
+                enterResponse($('.team-info').eq(i));
+                $('.team-info').eq(i).val(teams[i]);
+            }
+        })
+       getMatchesInEvent(eventName)
+       .then((matches) => {
+           for (i in matches) {
+               $('.match-info').eq(i).children(".form-control").each(function (j, childObj) {
+                   $(this).val(matches[i][j]);
+               })
+               addMatchLine();
+           }
+       })
+
         cardClick();
     })
 }

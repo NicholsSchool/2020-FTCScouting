@@ -81,12 +81,61 @@
                 <div class = "row justify-content-around">
                     <div class = "text-center col-md-4 pb-3">
                         <h3>Delivered</h3>
-                        <div id = "auto-delivery-stones" class = "auto-stone-option mt-2">
+                        <div class="btn-toolbar pt-3">
+                            <h4 class="pt-1 pr-3">Stone 1.</h4>
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <label class="btn btn-outline-primary active">
+                                    <input type="radio">None</label>
+                                <label class="btn btn-outline-primary">
+                                    <input class = "stone-option data" id="auto-oneDeliverStone" type="radio">Stone</label>
+                                <label class="btn btn-outline-primary">
+                                    <input class = "stone-option data" id="auto-oneDeliverSkystone" type="radio">Skystone</label>
+                            </div>
+                        </div>
+                        <div class="btn-toolbar pt-3">
+                            <h4 class="pt-1 pr-3">Stone 2.</h4>
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <label class="btn btn-outline-primary active">
+                                    <input type="radio">None</label>
+                                <label class="btn btn-outline-primary">
+                                    <input class = "stone-option data" id="auto-twoDeliverStone" type="radio">Stone</label>
+                                <label class="btn btn-outline-primary">
+                                    <input class = "stone-option data" id="auto-twoDeliverSkystone" type="radio">Skystone</label>
+                            </div>
+                        </div>
+                        <div class = "mt-5">
+                            <h3>Extra Stones Delivered</h3>
+                            <div class="d-flex justify-content-center mt-2">
+                                <div class="input-group mt-3 w-75">
+                                    <div class="input-group-prepend">
+                                        <button for="auto-extraDelivers" class="btn btn-outline-secondary change-btn decrement" type="button">-</button>
+                                    </div>
+                                    <div id="auto-extraDelivers" class="form-control data">
+                                        0
+                                    </div>
+                                    <div class="input-group-append">
+                                        <button for="auto-extraDelivers" class="btn btn-outline-secondary change-btn increment" type="button">+</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="text-center col-md-4 pb-3">
                         <h3>Placed</h3>
-                        <div id = "auto-placement-stones" class = "auto-stone-option mt-2">
+                        <div class="d-flex justify-content-center mt-2">
+                            <div class="input-group mt-3 w-75">
+                                <div class="input-group-prepend">
+                                    <button for="auto-placed" class="btn btn-outline-secondary change-btn decrement"
+                                        type="button">-</button>
+                                </div>
+                                <div id="auto-placed" class="form-control data">
+                                    0
+                                </div>
+                                <div class="input-group-append">
+                                    <button for="auto-placed" class="btn btn-outline-secondary change-btn increment"
+                                        type="button">+</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

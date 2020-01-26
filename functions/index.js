@@ -15,7 +15,7 @@ const { google } = require('googleapis');
 
 const CONFIG_CLIENT_ID = functions.config().googleapi.client_id;
 const CONFIG_CLIENT_SECRET = functions.config().googleapi.client_secret;
-const CONFIG_SHEET_ID = functions.config().spread_sheet.id;
+const SHEET_ID = functions.config().spread_sheet.id;
 
 // The OAuth Callback Redirect.
 const FUNCTIONS_REDIRECT = `https://us-central1-ftcscouting-63cc8.cloudfunctions.net/oauthcallback`;
@@ -27,8 +27,6 @@ const functionsOauthClient = new OAuth2Client(CONFIG_CLIENT_ID, CONFIG_CLIENT_SE
 
 // OAuth token cached locally.
 let oauthTokens = null;
-
-var currentEvent = null;
 
 // visit the URL for this Function to request tokens
 exports.authgoogleapi = functions.https.onRequest((req, res) => {
@@ -70,28 +68,51 @@ exports.appendrecordtospreadsheet = functions.firestore.document(`Events/{event}
         var current = change.after.data();
         var change = Object.keys(current).filter(val => !Object.keys(change.before.data()).includes(val));
         var data = current[change[0]];
-        var id = parseInt(data.matchId) + 2; //because in the sheet the first two columns are info
+        console.log(data);
+        var id = parseInt(data.matchId) + 3; //because in the sheet the first two columns are info
         var col = "";
         if (parseInt(id / 26) > 0)
             col += String.fromCharCode(parseInt(id / 26) - 1 + 65);
         col += String.fromCharCode(id % 26 + 65);
-        var sheetValues = [data.team, data.match.substring(5).trim(), "", data.auto.position, ""];
-        sheetValues = sheetValues.concat(data.auto.delivery);
-        sheetValues.push("");
-        sheetValues = sheetValues.concat(data.auto.placement);
-        sheetValues.push(data.auto.foundation, data.auto.parked, "", data.teleop.delivery, data.teleop.placed, 
-        data.teleop.capstone.placed, data.teleop.capstone.height, data.teleop.foundation, data.teleop.parked);
-        return appendPromise({
-            spreadsheetId: CONFIG_SHEET_ID,
-            range: context.params.event  + "!" + col + '1:'+col,
-            valueInputOption: 'USER_ENTERED',
-            insertDataOption: 'OVERWRITE',
+        console.log("column: " + col);
+        //This is here because Marcus's spreadsheet requries that a robot be marked "functional"
+        // before it performs calculations on the data
+        var functionalSpot = getSpreadsheetScoutInput(col + "9");
+        functionalSpot.values.push(["1"]);
+
+        var auto = getSpreadsheetScoutInput(col + "16");
+        var teleop = getSpreadsheetScoutInput(col + "66");
+        var endBooleans = getSpreadsheetScoutInput(col + "116");
+        var end = getSpreadsheetScoutInput(col + "126");
+        auto.values.push([data.auto.oneDeliverStone, data.auto.oneDeliverSkystone, 
+                    data.auto.twoDeliverStone, data.auto.twoDeliverSkystone,
+                    data.auto.extraDelivers, data.auto.placed, data.auto.foundation,
+                    data.auto.parked]);
+        teleop.values.push( [data.teleop.delivery, data.teleop.placed] );
+        endBooleans.values.push([data.teleop.capstone.placed, data.teleop.foundation, data.teleop.parked]);
+        end.values.push([data.teleop.capstone.height]);
+
+        var sendData = [functionalSpot, auto,teleop,endBooleans, end]
+        console.log("Send Data");
+        console.log(sendData);
+
+        return batchUpdatePromise({
+            spreadsheetId: SHEET_ID,
             resource: {
-                values: [sheetValues],
-                "majorDimension": "COLUMNS"
-            },
-        });
+                valueInputOption: 'USER_ENTERED',
+                data: sendData
+            }
+        })
     });
+
+function getSpreadsheetScoutInput(startIndex)
+{
+    return {
+        majorDimension: "COLUMNS",
+        range: "Match Scouting!" + startIndex,
+        values: []
+    }
+}
 
 // accepts an append request, returns a Promise to append it, enriching it with auth
 function appendPromise(requestWithoutAuth) {
@@ -102,6 +123,24 @@ function appendPromise(requestWithoutAuth) {
             const request = requestWithoutAuth;
             request.auth = client;
             return sheets.spreadsheets.values.append(request, (err, response) => {
+                if (err) {
+                    console.log(`The API returned an error: ${err}`);
+                    return reject(err);
+                }
+                return resolve(response.data);
+            });
+        });
+    });
+}
+
+function batchUpdatePromise(requestWithoutAuth) {
+    return new Promise((resolve, reject) => {
+        return getAuthorizedClient().then((client) => {
+            console.log("Sheets batch update promise called");
+            const sheets = google.sheets('v4');
+            const request = requestWithoutAuth;
+            request.auth = client;
+            return sheets.spreadsheets.values.batchUpdate(request, (err, response) => {
                 if (err) {
                     console.log(`The API returned an error: ${err}`);
                     return reject(err);
@@ -124,6 +163,67 @@ async function getAuthorizedClient() {
     return functionsOauthClient;
 }
 
+app.post('/saveTeamsToSpreadsheet', (req, res) => {
+    getCurrentEvent()
+    .then(event => {
+        return db.collection("Events").doc(event).collection("Teams").listDocuments();
+    })
+    .then(docs => {
+        var teams = [];
+        for (i in docs)
+            teams.push(docs[i].id);
+        return appendPromise({
+            spreadsheetId: SHEET_ID,
+            range:   "Schedule!M6",
+            valueInputOption: 'USER_ENTERED',
+            insertDataOption: 'OVERWRITE',
+            resource: {
+                values: [teams],
+                "majorDimension": "COLUMNS"
+            },
+        });
+    })
+    .then((val) => {
+        res.send("All Done");
+    })
+    .catch(err => {
+        console.error(err);
+        res.send(err);
+    })
+})
+
+app.post('/saveMatchesToSpreadsheet', (req, res) => {
+    getCurrentEvent()
+    .then(event => {
+        return db.collection("Events").doc(event).collection("Matches").listDocuments()
+    })
+    .then(docs => {
+        return db.getAll(...docs)
+    })
+    .then(async docSnaps => {
+        var matches = [];
+        for (let docSnap of docSnaps)
+            matches.push(await docSnap.get("teams"))
+        return appendPromise({
+            spreadsheetId: SHEET_ID,
+            range: "Schedule!B7",
+            valueInputOption: 'USER_ENTERED',
+            insertDataOption: 'OVERWRITE',
+            resource: {
+                values: matches,
+                "majorDimension": "ROWS"
+            },
+        });
+    })
+    .then(val => {
+        res.send("All Done");
+    })
+    .catch(err => {
+        console.error(err)
+        res.send(err);
+    })
+})
+
 /**
  * Saves the data for a played match by a team
  */
@@ -131,11 +231,15 @@ app.post('/saveData',(req, res) =>{
     var data = req.body.data;
     var update = { };
     update[data.match] = data;
-    db.collection("Events").doc(currentEvent).collection("Teams").doc(data.team).update(update)
+    getCurrentEvent()
+    .then(event => {
+        db.collection("Events").doc(event).collection("Teams").doc(data.team).update(update)
+        res.send("Save Done")
+    })
     .catch(err =>{
         console.error(err);
     })
-    res.send("Save Done")
+   
 })
 
 /**
@@ -143,16 +247,10 @@ app.post('/saveData',(req, res) =>{
  */
 app.post('/saveTeams',(req, res) => {
     var event = req.body.event;
-    db.collection("Events").doc(event).set({})
-    .then(snap =>{
-    })
-    .catch(err =>{
-        console.error(err);
-    })
-    for(i in req.body.teams)
-        db.collection("Events").doc(event).collection("Teams").doc(req.body.teams[i]).set({})
-        .catch(err =>{
-            console.error(err);
+    for (team of req.body.teams)
+        db.collection("Events").doc(event).collection("Teams").doc(team).create({})
+        .catch(err => {
+            console.log(err);
         })
     res.send("Teams done");
 })
@@ -180,7 +278,7 @@ app.post("/saveMatches", (req, res) => {
  * Sets the inputted event as the current event
  */
 app.post("/setEvent", (req, res) => {
-    currentEvent = req.body.event;
+    db.collection("MetaData").doc("CurrentEvent").set({ event: req.body.event })
     res.send("All done");
 })
 
@@ -188,39 +286,58 @@ app.post("/setEvent", (req, res) => {
  * Returns all events in database
  */
 app.get("/getAllEvents", async (req, res) => {
-    var events = [];
-  await db.collection("Events").listDocuments()
+    
+   db.collection("Events").listDocuments()
    .then(docs =>{
+       var events = [];
        for(i in docs)
-        events.push(docs[i].id);
+            events.push(docs[i].id);
+       res.send(events);
    })
    .catch(err => {
        console.error(err);
+       res.send(err);
    })
-   res.send(events);
+   
 })
 
 /**
  * Returns the current event
  */
-app.get("/getCurrentEvent", (req, res) => {
-    res.send(currentEvent);
+app.get("/getCurrentEvent", async (req, res) => {
+    getCurrentEvent()
+    .then(event => {
+        res.send(event);
+    })
 })
+
+function getCurrentEvent()
+{
+    return db.collection("MetaData").doc("CurrentEvent").get()
+        .then(snap => {
+           return snap.data().event;
+        })
+}
 
 /**
  * Returns the matches in the current event
  */
 app.get("/getMatches", async (req, res) =>{
-    var matches = [];
-   await db.collection("Events").doc(currentEvent).collection("Matches").listDocuments()
+    getCurrentEvent()
+    .then(event => {
+       return db.collection("Events").doc(event).collection("Matches").listDocuments()
+    }) 
     .then(docs => {
+        var matches = [];
         for(i in docs)
             matches.push(docs[i].id);
+        res.send(matches);
     })
     .catch(err => {
         console.error(err);
+        res.send(err);
     })
-    res.send(matches);
+   
 })
 
 /**
@@ -228,30 +345,37 @@ app.get("/getMatches", async (req, res) =>{
  */
 app.get("/getTeamsInMatch", (req, res) =>{
     var match = req.query.match;
-    db.collection("Events").doc(currentEvent).collection("Matches").doc(match).get()
+    getCurrentEvent()
+    .then(event => {
+        return db.collection("Events").doc(event).collection("Matches").doc(match).get()
+    })
     .then(snap =>{
         res.send(snap.data());
     })
     .catch(err =>{
         console.error(err);
+        res.send(err);
     })
 })
 
 /**
- * Returns all the teams in the current event
+ * Returns all the teams in the given event
  */
 app.get("/getTeamsInEvent", async (req, res) => {
     var event = req.query.event;
-    var teams = [];
-    await db.collection("Events").doc(event).collection("Teams").listDocuments()
+    
+    db.collection("Events").doc(event).collection("Teams").listDocuments()
     .then(docs => {
+        var teams = [];
         for(i in docs)
             teams.push(docs[i].id);
+        res.send(teams);
     })
     .catch(err => {
         console.error(err);
+        res.send(err);
     })
-    res.send(teams);
+  
 })
 
 /**
@@ -259,22 +383,20 @@ app.get("/getTeamsInEvent", async (req, res) => {
  */
 app.get("/getMatchesInEvent", async (req, res) =>{
     var event = req.query.event;
-    var matches = [];
-    await db.collection("Events").doc(event).collection("Matches").listDocuments()
+    db.collection("Events").doc(event).collection("Matches").listDocuments()
     .then(docs =>{
         return db.getAll(...docs)
     })
     .then(async docSnaps => {
-        var match = [];
+        var matches = [];
         for (let docSnap of docSnaps) 
-            match.push(await docSnap.get("teams"))
-        console.log(match);
-        matches.push(match)
+            matches.push(await docSnap.get("teams"))
+        res.send(matches);
     })
     .catch(err => {
         console.error(err)
+        res.send(err);
     })
-    res.send(matches);
 })
 
 exports.app = functions.https.onRequest(app);

@@ -1,12 +1,7 @@
 console.log("Main called");
-var autoDeliveryStoneOptions = 0;
-var autoPlaceStoneOptions = 0;
-var choices = ["None", "Stone", "Skystone" ];
 
 document.addEventListener("DOMContentLoaded", event => {
     $("#main").hide();
-    addAutoDeliveryStoneOption();
-    addAutoPlaceStoneOption();
     setUpEvent();
 
     // Sets up the increment/decrement features of the +/- options
@@ -36,9 +31,12 @@ document.addEventListener("DOMContentLoaded", event => {
  */
 async function setUpEvent()
 {
-    var event = await getCurrentEvent();
-    $("#current-event").text($("#current-event").text() + event);
-    setUpMatchOptions();
+    getCurrentEvent()
+    .then(event => {
+        $("#current-event").text($("#current-event").text() + event);
+        setUpMatchOptions();
+    })
+   
 }
 
 /**
@@ -46,11 +44,12 @@ async function setUpEvent()
  */
 async function setUpMatchOptions()
 {
-    var matches = await getMatches();
-    for(match of matches)
-        $("#match-choices").append(getMatchOption(match));
-    $("#match-choices").on("change", function(){
-        console.log($("#match-choices option:selected").text())
+    getMatches()
+    .then(matches =>{
+        for (match of matches)
+            $("#match-choices").append(getMatchOption(match));
+    })
+    $("#match-choices").on("change", function () {
         setUpTeamOptions($("#match-choices option:selected").text());
         $("#main").hide();
     })
@@ -62,15 +61,17 @@ async function setUpMatchOptions()
  */
 async function setUpTeamOptions(match)
 {
-    var teamData = await getTeamsInMatch(match);
     $("#team-choices").html("<option disabled selected value> -- select an option -- </option>");
-    console.log(teamData);
-    for(i in teamData.teams)
-        $("#team-choices").append(getTeamOption(teamData.teams[i], i , teamData.id));
+
+    getTeamsInMatch(match)
+    .then(teamData => {
+        for (i in teamData.teams)
+            $("#team-choices").append(getTeamOption(teamData.teams[i], i, teamData.id));
+    })
     // Resets and reveals the form when a new team is selected
     $("#team-choices").on("change", function(){
         reset();
-        $("#main").show();;
+        $("#main").show();
     })
 }
 
@@ -96,58 +97,6 @@ function getTeamOption(team, i, match)
 }
 
 /**
- * Adds a placed stone option in auto, and binds the buttons to this function
- * @param {*} button - a new placed stone option
- */
-function addAutoPlaceStoneOption(button)
-{
-    if (autoPlaceStoneOptions >= 6)
-        return;
-    $(button).unbind();
-    autoPlaceStoneOptions++;
-    var $option = getAutoOption(autoPlaceStoneOptions, "auto-placement")
-    $option.on("click", function(){addAutoPlaceStoneOption(this)});
-    $("#auto-placement-stones").append($option);
-}
-
-/**
- * Adds a delivered stone option in auto, and binds the buttons to this function
- * @param {*} button - a new delivered stone option
- */
-function addAutoDeliveryStoneOption(button)
-{
-    if(autoDeliveryStoneOptions >= 6)
-        return;
-    $(button).unbind();
-    autoDeliveryStoneOptions++;
-    var $option = getAutoOption(autoDeliveryStoneOptions, "auto-delivery")
-    $option.on("click", function(){addAutoDeliveryStoneOption(this)});
-    $("#auto-delivery-stones").append($option);
-}
-
-/**
- *  Returns the buttons for stone choices in auto
- * @param {*} number - value from 1 to 6
- * @param {*} className - class to differientiate between delivery and placement
- */
-function getAutoOption(number, className)
-{
-    return $(`
-        <div class = "btn-toolbar pt-3">
-            <h4 class = "pt-1 pr-3">Stone ${number}.</h4>
-            <div data-stone = "${number}" class = "btn-group btn-group-toggle auto-choices ${className}" data-toggle="buttons">
-                <label class="btn btn-outline-primary active">
-                    <input type="radio" name="options" autocomplete="off" checked>${choices[0]}</label>
-                <label class="btn btn-outline-primary">
-                    <input type="radio" name="options" autocomplete="off">${choices[1]}</label>
-                <label class="btn btn-outline-primary">
-                    <input type="radio" name="options" autocomplete="off">${choices[2]}</label>
-            </div>
-        </div>
-        `)
-}
-
-/**
  * Returns the data inputted by the user for the match
  */
 function getInputtedData()
@@ -157,35 +106,31 @@ function getInputtedData()
     data.matchId = $("#team-choices option:selected").attr("data-id");
     data.team = $("#team-choices option:selected").text();
     data.match = $("#match-choices option:selected").text();
-    getAutoChoices(data, "delivery");
-    getAutoChoices(data, "placement");
+
     $(".data").each(function (index, obj){
         var path = $(this).attr("id").split("-");
         var temp = data;
         for(i = 0; i < path.length - 1; i ++)
             temp = temp[path[i]];
+
         if ($(this).hasClass("form-check-input"))
             temp[path[i]] = $(this).is(':checked') ? 1 : 0;
+        else if ($(this).hasClass("stone-option"))
+        {
+            console.log("stone");
+            console.log(path);
+            temp[path[i]] = $(this).parent().hasClass("active") ? 1: 0;
+        }
         else
+        {
+            console.log("other");
+            console.log(path);
             temp[path[i]] = parseInt($(this).text().trim());
+        }
     })
     if ($("#auto-position-2").prop("checked"))
         data.auto.position = 2;
     return data;
-}
-
-/**
- * Stores the values of the auto choices, as clicked by the user
- * @param {*} data - the storage object for all user inputs
- * @param {*} className - which auto choice to look through
- */
-function getAutoChoices(data, className)
-{
-    $(".auto-" + className + " > .btn.active").each(function (index, obj) {
-        for (var i = 0; i < choices.length; i++)
-            if ($(obj).text().trim() == choices[i])
-                data.auto[className][index] = i;
-    })
 }
 
 /**
@@ -198,8 +143,12 @@ function getEmptyMatchData()
         team: "",
         match: "",
         auto: {
-            delivery: new Array(6).fill(0),
-            placement: new Array(6).fill(0),
+            oneDeliverStone: 0,
+            oneDeliverSkystone: 0,
+            twoDeliverStone: 0,
+            twoDeliverSkystone: 0,
+            extraDelivers: 0,
+            placed: 0,
             position: 1,
             foundation: 0,
             parked: 0
@@ -223,14 +172,12 @@ function getEmptyMatchData()
 function reset()
 {
     console.log("reset called");
-    $("#auto-delivery-stones").html("");
-    autoDeliveryStoneOptions = 0;
-    $("#auto-placement-stones").html("");
-    autoPlaceStoneOptions = 0;
-    addAutoDeliveryStoneOption();
-    addAutoPlaceStoneOption();
-    $("#auto-position-1").parent().addClass("active");
-    $("#auto-position-2").parent().removeClass("active");
+    $(".btn-group").each(function() {
+        $(this).children(".btn").eq(0).trigger("click");
+    })
+
+    // $("#auto-position-1").parent().addClass("active");
+    // $("#auto-position-2").parent().removeClass("active");
     $(".form-control").each(function (index, obj) {
         $(this).text(0);
     })
