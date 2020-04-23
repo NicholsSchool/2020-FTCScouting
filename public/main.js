@@ -115,18 +115,10 @@ function getInputtedData()
 
         if ($(this).hasClass("form-check-input"))
             temp[path[i]] = $(this).is(':checked') ? 1 : 0;
-        else if ($(this).hasClass("stone-option"))
-        {
-            console.log("stone");
-            console.log(path);
-            temp[path[i]] = $(this).parent().hasClass("active") ? 1: 0;
-        }
+        else if ($(this).parent().hasClass("btn"))
+            temp[path[i]] = $(this).parent().hasClass("active") ? 1 : 0;
         else
-        {
-            console.log("other");
-            console.log(path);
             temp[path[i]] = parseInt($(this).text().trim());
-        }
     })
     if ($("#auto-position-2").prop("checked"))
         data.auto.position = 2;
@@ -149,7 +141,7 @@ function getEmptyMatchData()
             twoDeliverSkystone: 0,
             extraDelivers: 0,
             placed: 0,
-            position: 1,
+            position: 0,
             foundation: 0,
             parked: 0
         },

@@ -83,16 +83,17 @@ exports.appendrecordtospreadsheet = functions.firestore.document(`Events/{event}
         var auto = getSpreadsheetScoutInput(col + "16");
         var teleop = getSpreadsheetScoutInput(col + "66");
         var endBooleans = getSpreadsheetScoutInput(col + "116");
-        var end = getSpreadsheetScoutInput(col + "126");
+        var end = getSpreadsheetScoutInput(col + "125");
+
         auto.values.push([data.auto.oneDeliverStone, data.auto.oneDeliverSkystone, 
                     data.auto.twoDeliverStone, data.auto.twoDeliverSkystone,
                     data.auto.extraDelivers, data.auto.placed, data.auto.foundation,
                     data.auto.parked]);
         teleop.values.push( [data.teleop.delivery, data.teleop.placed] );
         endBooleans.values.push([data.teleop.capstone.placed, data.teleop.foundation, data.teleop.parked]);
-        end.values.push([data.teleop.capstone.height]);
+        end.values.push([data.auto.position, data.teleop.capstone.height]);
 
-        var sendData = [functionalSpot, auto,teleop,endBooleans, end]
+        var sendData = [functionalSpot, auto, teleop, endBooleans, end]
         console.log("Send Data");
         console.log(sendData);
 
