@@ -8,9 +8,9 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Match Scouting</title>
 
-    <link rel="shortcut icon" href="icon.png">
-    <link rel="icon" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="shortcut icon" href="images/icon.png">
+    <link rel="icon" href="images/icon.png">
+    <link rel="apple-touch-icon" href="images/icon.png">
 
     <!-- Set Up Jquery -->
     <script src="https://code.jquery.com/jquery-3.3.1.js"
@@ -72,9 +72,9 @@
                         <h3>Starting Position</h3>
                         <div class="btn-group btn-group-toggle ml-3" data-toggle="buttons">
                             <label class="btn btn-outline-primary active">
-                                <input type="radio" autocomplete="off" checked>Loading Side</label>
+                                <input id = "auto-started_in_loading" class = "data" type="radio" autocomplete="off" checked>Loading Side</label>
                             <label class="btn btn-outline-primary">
-                                <input id = "auto-position" class = "data" type="radio" autocomplete="off">Build Side</label>
+                                <input id = "auto-started_in_build" class = "data" type="radio" autocomplete="off">Build Side</label>
                         </div>
                     </div>
                 </div>
@@ -87,9 +87,9 @@
                                 <label class="btn btn-outline-primary active">
                                     <input type="radio">None</label>
                                 <label class="btn btn-outline-primary">
-                                    <input class = "stone-option data" id="auto-oneDeliverStone" type="radio">Stone</label>
+                                    <input class = "stone-option data" id="auto-delivery_one_is_stone" type="radio">Stone</label>
                                 <label class="btn btn-outline-primary">
-                                    <input class = "stone-option data" id="auto-oneDeliverSkystone" type="radio">Skystone</label>
+                                    <input class = "stone-option data" id="auto-delivery_one_is_skystone" type="radio">Skystone</label>
                             </div>
                         </div>
                         <div class="btn-toolbar pt-3">
@@ -98,9 +98,9 @@
                                 <label class="btn btn-outline-primary active">
                                     <input type="radio">None</label>
                                 <label class="btn btn-outline-primary">
-                                    <input class = "stone-option data" id="auto-twoDeliverStone" type="radio">Stone</label>
+                                    <input class = "stone-option data" id="auto-delivery_two_is_stone" type="radio">Stone</label>
                                 <label class="btn btn-outline-primary">
-                                    <input class = "stone-option data" id="auto-twoDeliverSkystone" type="radio">Skystone</label>
+                                    <input class = "stone-option data" id="auto-delivery_two_is_skystone" type="radio">Skystone</label>
                             </div>
                         </div>
                         <div class = "mt-5">
@@ -108,13 +108,13 @@
                             <div class="d-flex justify-content-center mt-2">
                                 <div class="input-group mt-3 w-75">
                                     <div class="input-group-prepend">
-                                        <button for="auto-extraDelivers" class="btn btn-outline-secondary change-btn decrement" type="button">-</button>
+                                        <button for="auto-extra_delivers" class="btn btn-outline-secondary change-btn decrement" type="button">-</button>
                                     </div>
-                                    <div id="auto-extraDelivers" class="form-control data">
+                                    <div id="auto-extra_delivers" class="form-control data">
                                         0
                                     </div>
                                     <div class="input-group-append">
-                                        <button for="auto-extraDelivers" class="btn btn-outline-secondary change-btn increment" type="button">+</button>
+                                        <button for="auto-extra_delivers" class="btn btn-outline-secondary change-btn increment" type="button">+</button>
                                     </div>
                                 </div>
                             </div>
@@ -125,14 +125,14 @@
                         <div class="d-flex justify-content-center mt-2">
                             <div class="input-group mt-3 w-75">
                                 <div class="input-group-prepend">
-                                    <button for="auto-placed" class="btn btn-outline-secondary change-btn decrement"
+                                    <button for="auto-stones_placed" class="btn btn-outline-secondary change-btn decrement"
                                         type="button">-</button>
                                 </div>
-                                <div id="auto-placed" class="form-control data">
+                                <div id="auto-stones_placed" class="form-control data">
                                     0
                                 </div>
                                 <div class="input-group-append">
-                                    <button for="auto-placed" class="btn btn-outline-secondary change-btn increment"
+                                    <button for="auto-stones_placed" class="btn btn-outline-secondary change-btn increment"
                                         type="button">+</button>
                                 </div>
                             </div>
@@ -144,8 +144,8 @@
                         <div class="card">
                             <div class="card-body row ">
                                 <div class=" ml-3 form-check form-check-inline">
-                                    <input class="form-check-input data" type="checkbox" name="auto-foundation" id="auto-foundation">
-                                    <h6 class="form-check-label ml-2 mt-1" for="auto-foundation" >Foundation Repositioned</h6>
+                                    <input class="form-check-input data" type="checkbox" id="auto-foundation_repositioned">
+                                    <h6 class="form-check-label ml-2 mt-1" for="auto-foundation_repositioned" >Foundation Repositioned</h6>
                                 </div>
                             </div>
                         </div>
@@ -154,7 +154,7 @@
                         <div class="card">
                             <div class="card-body row ">
                                 <div class=" ml-3 form-check form-check-inline">
-                                    <input class="form-check-input data" type="checkbox" name="auto-parked" id="auto-parked">
+                                    <input class="form-check-input data" type="checkbox" id="auto-parked">
                                     <h6 class="form-check-label ml-2 mt-1" for="auto-parked">Parked</h6>
                                 </div>
                             </div>
@@ -173,13 +173,13 @@
                         <div id="teleop-delivery-stones" class="teleop-stone-option d-flex justify-content-center mt-2">
                             <div class="input-group mt-3 w-75">
                                 <div class="input-group-prepend">
-                                    <button for = "teleop-delivery"class="btn btn-outline-secondary change-btn decrement" type="button">-</button>
+                                    <button for = "teleop-delivered"class="btn btn-outline-secondary change-btn decrement" type="button">-</button>
                                 </div>
-                                <div id = "teleop-delivery" class="form-control data">
+                                <div id = "teleop-delivered" class="form-control data">
                                     0
                                 </div>
                                 <div class="input-group-append">
-                                    <button for = "teleop-delivery" class="btn btn-outline-secondary change-btn increment" type="button">+</button>
+                                    <button for = "teleop-delivered" class="btn btn-outline-secondary change-btn increment" type="button">+</button>
                                 </div>
                             </div>
                         </div>
@@ -206,22 +206,22 @@
                         <div class="card">
                             <div class="card-body text-center row ">
                                 <div class=" ml-3 form-check form-check-inline">
-                                    <input class="form-check-input data" type="checkbox" name="teleop-capstone-placed"" id="teleop-capstone-placed">
-                                    <h6 class="form-check-label ml-2 mt-1" for="teleop-capstone-placed"">Capstone Placed</h6>
+                                    <input class="form-check-input data" type="checkbox"  id="end-capstone_placed">
+                                    <h6 class="form-check-label ml-2 mt-1" for="end-capstone_placed">Capstone Placed</h6>
                                 </div>
                             </div>
                         </div> 
-                        <div id = "capstone-info" class = "disappear">
+                        <div id = "capstone-info">
                             <h3 class = "my-3">Capstone Height</h3>
                             <div class="input-group mt-4 text-center">
                                 <div class="input-group-prepend">
-                                    <button for="teleop-capstone-height" class="btn btn-outline-secondary change-btn decrement" type="button">-</button>
+                                    <button for="end-capstone_height" class="btn btn-outline-secondary change-btn decrement" type="button">-</button>
                                 </div>
-                                <div id="teleop-capstone-height" class="form-control data">
+                                <div id="end-capstone_height" class="form-control data">
                                     0
                                 </div>
                                 <div class="input-group-append">
-                                    <button for="teleop-capstone-height" class="btn btn-outline-secondary change-btn increment" type="button">+</button>
+                                    <button for="end-capstone_height" class="btn btn-outline-secondary change-btn increment" type="button">+</button>
                                 </div>
                             </div>
                         </div>
@@ -232,8 +232,8 @@
                         <div class="card">
                             <div class="card-body row ">
                                 <div class=" ml-3 form-check form-check-inline">
-                                    <input class="form-check-input data" type="checkbox" name="teleop-foundation" id="teleop-foundation">
-                                    <h6 class="form-check-label ml-2 mt-1" for="teleop-foundation" >Foundation Repositioned</h6>
+                                    <input class="form-check-input data" type="checkbox" id="end-foundation_repositioned">
+                                    <h6 class="form-check-label ml-2 mt-1" for="end-foundation_repositioned" >Foundation Repositioned</h6>
                                 </div>
                             </div>
                         </div>
@@ -242,8 +242,8 @@
                         <div class="card">
                             <div class="card-body row ">
                                 <div class=" ml-3 form-check form-check-inline">
-                                    <input class="form-check-input data" type="checkbox" name="teleop-parked" id="teleop-parked">
-                                    <h6 class="form-check-label ml-2 mt-1" for="teleop-parked">Parked</h6>
+                                    <input class="form-check-input data" type="checkbox" id="end-parked">
+                                    <h6 class="form-check-label ml-2 mt-1" for="end-parked">Parked</h6>
                                 </div>
                             </div>
                         </div>
@@ -292,8 +292,8 @@
     <!-- Initialize Firebase -->
     <script src="/__/firebase/init.js"></script>
 
-        <!-- Set Up Program Files-->
-        <script src="header.js"></script>
-        <script src="main.js"></script>
-        <script src="userServer.js"></script>
+    <!-- Set Up Program Files-->
+    <script src="js/header.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/userServer.js"></script>
 </body>

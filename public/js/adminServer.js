@@ -13,15 +13,15 @@ async function getTeamsInEvent(event) {
 
 async function getMatchesInEvent(event) {
   
-    return $.get('/getMatchesInEvent?event=' + event, (matches) => {
+    return $.get('/getDetailedMatches?event=' + event, (matches) => {
         return matches;
     })
 }
 
-function saveTeamsToServer() {
+function saveTeamsToServer(event, teams) {
     console.log("testing server");
     var data = {}
-    data["event"] = getUserInputtedEventName();
+    data["event"] = event;
     data["teams"] = teams;
     $.post('/saveTeams', data,
         function (response, status) {
@@ -29,10 +29,10 @@ function saveTeamsToServer() {
         })
 }
 
-function saveMatchesToServer() {
+function saveMatchesToServer(event, matches) {
     console.log("saving matches");
     var data = {}
-    data["event"] = getUserInputtedEventName();
+    data["event"] = event;
     data["matches"] = matches;
     $.post('/saveMatches', data,
         function (response, status) {
