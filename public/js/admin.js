@@ -67,8 +67,6 @@ document.addEventListener("DOMContentLoaded", event => {
     })
 
     $('#set-event-btn').on("click", setEvent);
-    $('#set-teams-btn').on("click", setTeamsInSpreadsheet);
-    $('#set-match-btn').on("click", setMatchesInSpreadsheet);
     $('#add-match-btn').on("click", addMatchLine)
 })
 
@@ -87,7 +85,7 @@ function getInputtedTeamList()
  */
 function getUserInputtedEventName()
 {
-    return $('#event-name-input').val();
+    return $('#event-name-input').val().trim();
 }
 
 /**
@@ -254,7 +252,6 @@ async function setUpEventOptions()
                })
            }
        })
-
         cardClick();
     })
 }

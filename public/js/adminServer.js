@@ -40,19 +40,6 @@ function saveMatchesToServer(event, matches) {
         })
 }
 
-function setTeamsInSpreadsheet(){
-    $.post('/saveTeamsToSpreadsheet', {},
-        function (response, status) {
-            console.log(response);
-        })
-}
-
-function setMatchesInSpreadsheet() {
-    $.post('/saveMatchesToSpreadsheet', {},
-        function (response, status) {
-            console.log(response);
-        })
-}
 
 async function setEvent() {
     if (eventError())
@@ -61,7 +48,9 @@ async function setEvent() {
     $.post('/setEvent', { "event": getUserInputtedEventName() },
         function (response, status) {
             console.log(response);
-            $('#set-event-btn').addClass("disappear");
+            console.log(status);
+            $('#set-event-btn').hide();
+            $("#set-event-btn").parent().append(`<p>${status}</p>`);
         })
 
 }
