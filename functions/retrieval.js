@@ -152,7 +152,7 @@ app.get("/getAllTeamData", (req, res) => {
  * @return an empty version of the storage object used for scouting data collection
  */
 app.get('/getEmptyData', (req, res) => {
-    res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
+    res.set('Cache-Control', 'public, max-age=3000, s-maxage=6000');
     res.send(gameData.getEmptyMatchData());
 })
 
