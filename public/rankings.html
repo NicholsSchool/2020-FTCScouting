@@ -39,7 +39,7 @@
 
 <body style="background-color: aliceblue">
     <div id="header"></div>
-    <div class="container mt-3">
+    <div id = "content" class="container mt-3">
         <div class = "row">
             <div class = "col-md-5">
                 <div class = "card">
@@ -106,39 +106,24 @@
         </div>
     </div>
 
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <script src="/__/firebase/7.8.2/firebase-app.js"></script>
-
+    
     <!-- TODO: Add SDKs for Firebase products that you want to use
-     https://firebase.google.com/docs/web/setup#available-libraries -->
+         https://firebase.google.com/docs/web/setup#available-libraries -->
     <script src="/__/firebase/7.8.2/firebase-analytics.js"></script>
+    <script src="/__/firebase/7.14.5/firebase-auth.js"></script>
     <script src="/__/firebase/7.7.0/firebase-firestore.js"></script>
-
+    
+    <!-- Initialize Firebase -->
+    <script src="/__/firebase/init.js"></script>
     <script>
-        // Your web app's Firebase configuration
-
-        /*
-            The rankings page uses Firebase on the client side of the code,
-             as opposed to all the other pages which rely on the server side code. 
-             It does this so that it can provide real time updates to 
-             the ranking tables the user views. 
-             To link it to your firebase project, you need to edit the config.
-        */
-       
-        // TODO: On the firebase console, navigate to the project setting and 
-        // find the apikey, the authdomain, and the projectID, and paste them here. 
-        var config = {
-            apiKey: "AIzaSyAeGVHKCQNenB9i8VnX58PR46RXqNcWFzg",
-            authDomain: "ftcscouting-63cc8.firebaseapp.com",
-            projectId: "ftcscouting-63cc8",
-        };
-        firebase.initializeApp(config);
-         var db = firebase.firestore();
+        var db = firebase.firestore();
     </script>
     <!-- Set Up Program Files-->
-    <script src="js/header.js"></script>
     <script src="js/userServer.js"></script>
     <script src="js/rankings.js"></script>
     <script src="js/rankingsUpdate.js"></script>
+    
+    <script src="js/authentication.js"></script>
 </body>

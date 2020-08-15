@@ -3,6 +3,7 @@ const { app, db, functions } = require('./server');
 require("./setup");
 const retrieval = require("./retrieval");
 const gameData = require("./data");
+const verification = require("./verification");
 require("./predictions");
 
 /**
@@ -12,7 +13,11 @@ require("./predictions");
  */
 app.post("/saveData", (req, res) => {
     var data = req.body;
-    retrieval.getCurrentEvent()
+    //First we verify the user. If they aren't valid, the code skips to the catch()
+    verification.verifyAuthToken(req)
+        .then((decoded) => {
+            return retrieval.getCurrentEvent()
+        })
     .then((event) => {
         let teamRef = event.collection("Teams").doc(data.team);
         db.runTransaction((transaction) => {
@@ -102,23 +107,30 @@ app.get("/getRanking", (req, res) => {
     var path = req.query.path;
     var numTeams = Number(req.query.numTeams);
     var order = req.query.isReversed == "true" ? 'asc' : "desc";
-    retrieval.getCurrentEvent()
-    .then((event) => {
-        if(numTeams <= 0)
-            return event.collection("Teams").orderBy(path, order).get();
-        else
-            return event.collection("Teams").orderBy(path, order).limit(numTeams).get();
-    })
-    .then((snap) => {
-        var data = [];
-        path = path.split(".");
-        snap.forEach(doc => {
-            var value = doc.data();
-            for (i = 0; i < path.length; i++)
-                value = value[path[i]];
-            data.push([doc.id, value]);
-        });
+    //First we verify the user. If they aren't valid, the code skips to the catch()
+    verification.verifyAuthToken(req)
+        .then((decoded) => {
+            return retrieval.getCurrentEvent()
+        })
+        .then((event) => {
+            if(numTeams <= 0)
+                return event.collection("Teams").orderBy(path, order).get();
+            else
+                return event.collection("Teams").orderBy(path, order).limit(numTeams).get();
+        })
+        .then((snap) => {
+            var data = [];
+            path = path.split(".");
+            snap.forEach(doc => {
+                var value = doc.data();
+                for (i = 0; i < path.length; i++)
+                    value = value[path[i]];
+                data.push([doc.id, value]);
+            });
         res.send(data);
+    })
+    .catch(err => {
+        res.status(400).send("Error in getting ranking");
     })
 })
 

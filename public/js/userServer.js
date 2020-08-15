@@ -73,9 +73,14 @@ async function getEmptyMatchData() {
  */
 async function getRankings(path, numTeams, isReversed) {
     console.log("Is reversed: " + isReversed);
-    return $.get('/getRanking?path=' + path + '&numTeams=' + numTeams + "&isReversed=" + isReversed, (data) => {
-        return data;
-    })
+    return firebase.auth().currentUser.getIdToken(true)
+        .then((idToken) => {
+            return $.ajax({
+                url: '/getRanking?path=' + path + '&numTeams=' + numTeams + "&isReversed=" + isReversed,
+                headers: { 'Authorization': idToken },
+                method: 'GET',
+            })
+        })
 }
 
 /**
@@ -83,10 +88,21 @@ async function getRankings(path, numTeams, isReversed) {
  */
 function saveData() {
     getInputtedData()
-        .then((data) => {
-            $.post('/saveData', data);
-            reset();
-            $("#main").hide();
+        .then((scouttedData) => {
+            firebase.auth().currentUser.getIdToken(true)
+                .then((idToken) => {
+                    console.log(id)
+                    return $.ajax({
+                        url: "/saveData",
+                        headers: { 'Authorization': idToken },
+                        data: scouttedData,
+                        method: 'POST',
+                    })
+                })
+                .then(() => {
+                    reset();
+                    $("#main").hide();
+                })
         })
 }
 
@@ -99,9 +115,15 @@ function saveData() {
  */
 async function getPrediction(blueAlliance, redAlliance) {
     console.log("Getting Prediction")
-    return $.get('/getWinner', { 'blue': blueAlliance, 'red': redAlliance }, (prediction) => {
-        return prediction;
-    })
+    return firebase.auth().currentUser.getIdToken(true)
+        .then((idToken) => {
+            return $.ajax({
+                url: "/getWinner",
+                headers: { 'Authorization': idToken },
+                data: { 'blue': blueAlliance, 'red': redAlliance },
+                method: 'GET',
+            })
+        })
 }
 
 /**
@@ -110,9 +132,15 @@ async function getPrediction(blueAlliance, redAlliance) {
  * @return the data stored for a given team
  */
 async function getTeamData(team) {
-    return $.get('/getTeamData', { 'team': team }, (teamData) => {
-        return teamData;
-    })
+    return firebase.auth().currentUser.getIdToken(true)
+        .then((idToken) => {
+            return $.ajax({
+                url: "/getTeamData",
+                headers: { 'Authorization': idToken },
+                data: { 'team': team },
+                method: 'GET',
+            })
+        })
 }
 
 /**
@@ -120,7 +148,12 @@ async function getTeamData(team) {
  * @return a list of the data for each and every team
  */
 async function getAllTeamData() {
-    return $.get('/getAllTeamData', (allTeamData) => {
-        return allTeamData
-    })
+    return firebase.auth().currentUser.getIdToken(true)
+        .then((idToken) => {
+            return $.ajax({
+                url: "/getAllTeamData",
+                headers: { 'Authorization': idToken },
+                method: 'GET',
+            })
+        })
 }
