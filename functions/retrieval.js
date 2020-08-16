@@ -1,7 +1,13 @@
 const { app, db } = require('./server');
 const gameData = require('./data');
+const verification = require("./verification.js");
 
 var methods = {};
+
+/**
+ * Returns the DocumentReference of the current event the app is set to
+ * @return the DocumentReference of the current event the app is set to
+ */
 methods.getCurrentEvent = async function() {
     return db.collection("MetaData").doc("CurrentEvent").get()
         .then(snap => {
@@ -24,6 +30,7 @@ app.get("/getCurrentEvent", (req, res) => {
         })
         .catch((err) => {
             console.error(err);
+            res.status(400).send("Error in getting event name");
         })
 })
 
@@ -40,7 +47,7 @@ app.get("/getCurrentEventID", (req, res) => {
         })
         .catch(err => {
             console.log(err);
-            res.send(err);
+            res.status(400).send("Error in getting event ID");
         })
 })
 
@@ -63,6 +70,7 @@ app.get("/getMatches", (req, res) => {
         })
         .catch(err => {
             console.error(err);
+            res.status(400).send("Error in getting matches");
         })
 })
 
@@ -83,6 +91,10 @@ app.get("/getAllTeams", (req, res) => {
             res.set('Cache-Control', 'private, max-age=300, s-maxage=600');
             res.send(teams);
         })
+        .catch(err => {
+            console.log(err)
+            res.status(400).send("Error in getting a list of all teams");
+        })
 })
 
 /**
@@ -98,10 +110,12 @@ app.get("/getTeamsInMatch", (req, res) => {
             return event.collection("Matches").doc(match).get()
         })
         .then((match) => {
+            res.set('Cache-Control', 'private, max-age=300, s-maxage=600');
             res.send(match.data());
         })
         .catch((err) => {
             console.error(err);
+            res.status(404).send("Match Not Found")
         })
 })
 
@@ -113,7 +127,11 @@ app.get("/getTeamsInMatch", (req, res) => {
  */
 app.get("/getTeamData", (req, res) => {
     var team = req.query.team;
-    methods.getCurrentEvent()
+    //First we verify the user. If they aren't valid, the code skips to the catch()
+    verification.verifyAuthToken(req) 
+        .then(decoded => {
+            return methods.getCurrentEvent()
+        })
         .then(event => {
             return event.collection("Teams").doc(team).get()
         })
@@ -122,6 +140,7 @@ app.get("/getTeamData", (req, res) => {
         })
         .catch((err) => {
             console.error(err);
+            res.status(400).send("Retrieval error for team data")
         })
 })
 
@@ -133,7 +152,11 @@ app.get("/getTeamData", (req, res) => {
 app.get("/getAllTeamData", (req, res) => {
     var order = 'desc';
     var path = "averages.totalScore"
-    return methods.getCurrentEvent()
+    //First we verify the user. If they aren't valid, the code skips to the catch()
+    verification.verifyAuthToken(req)
+        .then((decoded) => {
+            return methods.getCurrentEvent()
+        })
         .then(event => {
             return event.collection("Teams").orderBy(path, order).get();
         })
@@ -144,6 +167,10 @@ app.get("/getAllTeamData", (req, res) => {
             })
             res.send(response);
         })
+        .catch(err => {
+            console.log(err);
+            res.status(400).send("Error in getting all team data at event")
+        })
 })
 
 /**
@@ -152,7 +179,7 @@ app.get("/getAllTeamData", (req, res) => {
  * @return an empty version of the storage object used for scouting data collection
  */
 app.get('/getEmptyData', (req, res) => {
-    res.set('Cache-Control', 'public, max-age=3000, s-maxage=6000');
+    res.set('Cache-Control', 'public, max-age=3000, s-maxage=6000'); // This cache is 10x longer than rest
     res.send(gameData.getEmptyMatchData());
 })
 

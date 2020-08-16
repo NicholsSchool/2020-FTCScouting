@@ -6,7 +6,12 @@ document.addEventListener("DOMContentLoaded", event => {
     $("#set-btns").hide();
     $("#event-form").hide();
     $("#teams").hide();
-    setUpEventOptions();
+    firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+            setUpEventOptions();
+        }
+    });
+    
     $("#create-button").on("click", cardClick)
 
     setEnterResponse($('.info'))

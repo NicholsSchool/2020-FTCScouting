@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", event => {
            $("#end-capstone_height").text(0);
         }
    })
-   $("#submit-btn").on("click", saveData);
+    $("#submit-btn").on("click", saveData);
 })
 
 /**

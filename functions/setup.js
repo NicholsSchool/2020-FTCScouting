@@ -1,5 +1,7 @@
 const { app, db } = require('./server');
 const gameData = require("./data");
+const verification = require("./verification.js");
+
 /**
  * Saves the inputted teams for the inputted event
  * @param event - inside the request sent, this must be the desired event's name
@@ -8,20 +10,24 @@ const gameData = require("./data");
 app.post('/saveTeams', (req, res) => {
     var event = req.body.event;
     var teams = req.body.teams;
-    var batch = db.batch();
-    for (team of teams)
-        batch.set(db.collection("Events").doc(event).collection("Teams").doc(team), {
-            teamNum: team,
-            matches: {},
-            averages: gameData.getEmptyMatchData().gamePlay
-        });
-    batch.commit()
+    //First we verify the user. If they aren't valid, the code skips to the catch()
+    verification.verifyAuthToken(req)
+        .then( decoded => {
+            var batch = db.batch();
+            for (team of teams)
+                batch.set(db.collection("Events").doc(event).collection("Teams").doc(team), {
+                    teamNum: team,
+                    matches: {},
+                    averages: gameData.getEmptyMatchData().gamePlay
+                });
+            return batch.commit()
+        })
         .then(() => {
             res.send("done");
         })
         .catch(err => {
             console.error(err);
-            res.send(err);
+            res.status(400).send("Error setting saving teams")
         })
 })
 
@@ -33,16 +39,23 @@ app.post('/saveTeams', (req, res) => {
 app.post("/saveMatches", (req, res) => {
     var event = req.body.event;
     var matches = req.body.matches;
-    var batch = db.batch();
-    for (match in matches) {
-        var matchNum = "" + (Number(match) + 1);
-        while (matchNum.length < 3)
-            matchNum = "0" + matchNum;
-        batch.set(db.collection("Events").doc(event).collection("Matches").doc(matchNum), matches[match]);
-    }
-    batch.commit()
+    verification.verifyAuthToken(req)
+        .then(decoded => {
+            var batch = db.batch();
+            for (match in matches) {
+                var matchNum = "" + (Number(match) + 1);
+                while (matchNum.length < 3)
+                    matchNum = "0" + matchNum;
+                batch.set(db.collection("Events").doc(event).collection("Matches").doc(matchNum), matches[match]);
+            }
+            return batch.commit()
+        })
         .then(() => {
             res.send("done");
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(400).send("Error setting saving matches")
         })
 })
 
@@ -51,9 +64,17 @@ app.post("/saveMatches", (req, res) => {
  * @param event - inside the request sent, this must be the desired event's name
  */
 app.post("/setEvent", (req, res) => {
-    db.collection("MetaData").doc("CurrentEvent").set({ event: req.body.event })
-    db.collection("Events").doc(req.body.event).set({ name: req.body.event })
-    res.send("All done");
+    //First we verify the user. If they aren't valid, the code skips to the catch()
+    verification.verifyAuthToken(req)
+        .then((decoded) => {
+            db.collection("MetaData").doc("CurrentEvent").set({ event: req.body.event })
+            db.collection("Events").doc(req.body.event).set({ name: req.body.event })
+            res.send("All done");
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(401).send("Not allowed to set current event");
+        })
 })
 
 /**
@@ -62,7 +83,10 @@ app.post("/setEvent", (req, res) => {
  */
 app.get("/getAllEvents", async (req, res) => {
 
-    db.collection("Events").listDocuments()
+    verification.verifyAuthToken(req)
+        .then((decoded) => {
+            return db.collection("Events").listDocuments()
+        })
         .then(docs => {
             var events = [];
             for (i in docs)
@@ -71,7 +95,7 @@ app.get("/getAllEvents", async (req, res) => {
         })
         .catch(err => {
             console.error(err);
-            res.send(err);
+            res.status(400).send("Error getting saved events")
         })
 
 })
@@ -83,8 +107,10 @@ app.get("/getAllEvents", async (req, res) => {
  */
 app.get("/getDetailedMatches", async (req, res) => {
     var event = req.query.event;
-    console.log(event);
-    db.collection("Events").doc(event).collection("Matches").listDocuments()
+    verification.verifyAuthToken(req)
+        .then((decoded) => {
+            return db.collection("Events").doc(event).collection("Matches").listDocuments()
+        })
         .then(docs => {
             return db.getAll(...docs)
         })
@@ -96,7 +122,7 @@ app.get("/getDetailedMatches", async (req, res) => {
         })
         .catch(err => {
             console.error(err)
-            res.send(err);
+            res.status(400).send("Error getting detailed match info")
         })
 })
 
@@ -107,8 +133,10 @@ app.get("/getDetailedMatches", async (req, res) => {
  */
 app.get("/getTeamsInEvent", async (req, res) => {
     var event = req.query.event;
-
-    db.collection("Events").doc(event).collection("Teams").listDocuments()
+    verification.verifyAuthToken(req)
+        .then((decoded) => {
+            return db.collection("Events").doc(event).collection("Teams").listDocuments()
+        })
         .then(docs => {
             var teams = [];
             for (team of docs)
@@ -117,6 +145,6 @@ app.get("/getTeamsInEvent", async (req, res) => {
         })
         .catch(err => {
             console.error(err);
-            res.send(err);
+            res.status(400).send("Error getting teams in event")
         })
 })

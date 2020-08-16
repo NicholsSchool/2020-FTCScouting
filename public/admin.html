@@ -34,7 +34,7 @@
 </head>
 <body style="background-color: aliceblue">
     <div id="header"></div>
-    <div class = "container mt-5">
+    <div id = "content" class = "container mt-5">
         <div class = "d-flex justify-content-center">
             <div id = "create-card" class = "card text-center col-md-4 mr-3">
                 <div class = "card-body">
@@ -147,17 +147,18 @@
     </div>
 
     <!-- The core Firebase JS SDK is always required and must be listed first -->
-    <script src="/__/firebase/7.4.0/firebase-app.js"></script>
-
+    <script src="/__/firebase/7.8.2/firebase-app.js"></script>
+    
     <!-- TODO: Add SDKs for Firebase products that you want to use
-         https://firebase.google.com/docs/web/setup#available-libraries -->
-    <script src="/__/firebase/7.4.0/firebase-analytics.js"></script>
-
+            https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="/__/firebase/7.14.5/firebase-auth.js"></script>
+    <script src="/__/firebase/7.8.2/firebase-analytics.js"></script>
+    
     <!-- Initialize Firebase -->
     <script src="/__/firebase/init.js"></script>
 
     <!-- Set Up Program Files-->
-    <script src="js/header.js"></script>
+    <script src="js/authentication.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/adminServer.js"></script>
 </body>

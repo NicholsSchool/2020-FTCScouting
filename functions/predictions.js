@@ -1,6 +1,7 @@
 const { app, db } = require('./server');
 const gameData = require("./data");
 const retrieval = require("./retrieval");
+const verification = require("./verification.js");
 /**
  * Calculates the predicted score for an alliance of teams if they played together
  * @param {*} allianceAverages - a list of the averages scores for each team in the alliance
@@ -66,7 +67,11 @@ app.get("/getWinner", (req, res) => {
     var blueScore = 0;
     var redScore = 0;
     var teamsRef;
-    retrieval.getCurrentEvent()
+    //First we verify the user. If they aren't valid, the code skips to the catch()
+    verification.verifyAuthToken(req)
+        .then((decoded) => {
+            return retrieval.getCurrentEvent()
+        })
         .then((event) => {
             teamsRef = event.collection("Teams");
             return teamsRef.where('teamNum', 'in', blueAlliance).get();
